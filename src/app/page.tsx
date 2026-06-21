@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 type UserType = "patient" | "doctor" | "clinic" | "hospital";
@@ -25,12 +25,23 @@ export default function Home() {
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const closeTimerRef = useRef<number | null>(null);
   const [status, setStatus] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+    };
+  }, []);
+
   const openWaitlist = () => {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
     setStatus(null);
     setIsWaitlistOpen(true);
   };
@@ -86,6 +97,14 @@ export default function Home() {
     setIsSubmitting(false);
 
     if (error) {
+      console.error("[Cure AI waitlist] Failed insert", {
+        email: payload.email,
+        userType: payload.user_type,
+        city: payload.city,
+        code: error.code,
+        message: error.message,
+        details: error.details,
+      });
       const duplicateSubmission = error.code === "23505";
       setStatus({
         type: "error",
@@ -96,11 +115,21 @@ export default function Home() {
       return;
     }
 
+    console.log("[Cure AI waitlist] Successful insert", {
+      email: payload.email,
+      userType: payload.user_type,
+      city: payload.city,
+    });
     setForm(initialForm);
     setStatus({
       type: "success",
-      message: "You’re on the Cure AI waitlist. We’ll contact you soon.",
+      message: "You're on the waitlist! 🎉",
     });
+    closeTimerRef.current = window.setTimeout(() => {
+      setIsWaitlistOpen(false);
+      setStatus(null);
+      closeTimerRef.current = null;
+    }, 2000);
   };
 
   return (
