@@ -3,10 +3,10 @@ import Image from "next/image";
 export default function BetaHome() {
   return (
     <main className="fixed inset-0 z-50 isolate overflow-y-auto bg-white text-slate-950">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(10,102,255,0.18),transparent_34%),linear-gradient(135deg,#ffffff_0%,#f5faff_46%,#eaf3ff_100%)]" />
-      <div className="absolute left-1/2 top-10 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-[#0A66FF]/10 blur-3xl sm:h-96 sm:w-96" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(10,102,255,0.18),transparent_34%),linear-gradient(135deg,#ffffff_0%,#f5faff_46%,#eaf3ff_100%)]" />
+      <div className="pointer-events-none absolute left-1/2 top-10 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-[#0A66FF]/10 blur-3xl sm:h-96 sm:w-96" />
 
-      <section className="mx-auto flex min-h-svh w-full max-w-6xl flex-col items-center justify-center px-5 py-16 text-center sm:px-8">
+      <section className="relative z-10 mx-auto flex min-h-svh w-full max-w-6xl flex-col items-center justify-center px-5 py-16 text-center sm:px-8">
         <div className="mb-8 rounded-[2rem] border border-blue-100 bg-white/80 p-4 shadow-2xl shadow-blue-500/10 backdrop-blur">
           <Image
             src="/cure-ai-logo.png"
@@ -37,7 +37,7 @@ export default function BetaHome() {
         <div className="mt-10 flex w-full flex-col items-center justify-center gap-4 sm:w-auto sm:flex-row">
           <button
             type="button"
-            className="inline-flex w-full items-center justify-center rounded-full bg-[#0A66FF] px-8 py-4 text-base font-bold text-white shadow-xl shadow-blue-500/25 transition hover:-translate-y-0.5 hover:bg-blue-700 sm:w-auto"
+            className="inline-flex w-full cursor-pointer items-center justify-center rounded-full bg-[#0A66FF] px-8 py-4 text-base font-bold text-white shadow-xl shadow-blue-500/25 transition hover:-translate-y-0.5 hover:bg-blue-700 sm:w-auto"
           >
             Join waitlist
           </button>
