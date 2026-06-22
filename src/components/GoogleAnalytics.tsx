@@ -5,12 +5,20 @@ import { usePathname } from "next/navigation";
 import Script from "next/script";
 
 const GA_MEASUREMENT_ID = "G-1RLWK3EXDE";
+type GAEventParams = Record<string, string | number | boolean | undefined>;
 
 declare global {
   interface Window {
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
   }
+}
+
+export function trackGAEvent(eventName: string, params: GAEventParams = {}) {
+  if (process.env.NODE_ENV !== "production") return;
+  if (typeof window === "undefined" || !window.gtag) return;
+
+  window.gtag("event", eventName, params);
 }
 
 export default function GoogleAnalytics() {

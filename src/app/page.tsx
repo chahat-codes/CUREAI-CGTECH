@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { trackGAEvent } from "@/components/GoogleAnalytics";
 import { supabase } from "@/lib/supabase";
 
 type UserType = "patient" | "doctor" | "clinic" | "hospital";
@@ -51,6 +52,10 @@ export default function Home() {
     }
     setStatus(null);
     setIsWaitlistOpen(true);
+    trackGAEvent("join_waitlist_click", {
+      event_category: "engagement",
+      event_label: "homepage_join_waitlist",
+    });
   };
 
   const closeWaitlist = () => {
