@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import AppChrome from "@/components/AppChrome";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
+
+const isProduction = process.env.NODE_ENV === "production";
 
 export const metadata: Metadata = {
   title: "Cure AI | Find the Right Doctor in 30 Seconds",
@@ -20,6 +23,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)] relative">
         <AppChrome>{children}</AppChrome>
+        {isProduction && <GoogleAnalytics />}
       </body>
     </html>
   );
