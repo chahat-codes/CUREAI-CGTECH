@@ -5,6 +5,13 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 type UserType = "patient" | "doctor" | "clinic" | "hospital";
+type WaitlistPayload = {
+  full_name: string;
+  email: string;
+  phone: string;
+  user_type: UserType;
+  city: string;
+};
 
 const userTypes: Array<{ label: string; value: UserType }> = [
   { label: "Patient", value: "patient" },
@@ -68,7 +75,7 @@ export default function Home() {
       return;
     }
 
-    const payload = {
+    const payload: WaitlistPayload = {
       full_name: form.fullName.trim(),
       email: form.email.trim().toLowerCase(),
       phone: form.phone.replace(/\s+/g, "").trim(),
@@ -92,25 +99,51 @@ export default function Home() {
 
     setIsSubmitting(true);
 
-    const { error } = await supabase.from("waitlist").insert(payload);
+    let insertError: {
+      code?: string;
+      message: string;
+      details?: string;
+      hint?: string;
+    } | null = null;
+
+    try {
+      console.log("[Cure AI waitlist] Insert payload", {
+        columns: Object.keys(payload),
+        email: payload.email,
+        phone: payload.phone,
+        userType: payload.user_type,
+        city: payload.city,
+      });
+
+      const { error } = await supabase.from("waitlist").insert(payload);
+      insertError = error;
+    } catch (err) {
+      insertError =
+        err instanceof Error
+          ? { message: err.message }
+          : { message: "Unknown waitlist insert error." };
+    }
 
     setIsSubmitting(false);
 
-    if (error) {
-      console.error("[Cure AI waitlist] Failed insert", {
+    if (insertError) {
+      console.error("[Cure AI waitlist] Supabase insert error", {
+        payload,
         email: payload.email,
+        phone: payload.phone,
         userType: payload.user_type,
         city: payload.city,
-        code: error.code,
-        message: error.message,
-        details: error.details,
+        code: insertError.code,
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint,
       });
-      const duplicateSubmission = error.code === "23505";
+      const duplicateSubmission = insertError.code === "23505";
       setStatus({
         type: "error",
         message: duplicateSubmission
           ? "This email or phone number is already on the Cure AI waitlist."
-          : "We could not add you to the waitlist. Please try again.",
+          : `Supabase error: ${insertError.message}`,
       });
       return;
     }
