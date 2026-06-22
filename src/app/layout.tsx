@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AppChrome from "@/components/AppChrome";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import MicrosoftClarity from "@/components/MicrosoftClarity";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)] relative">
         <AppChrome>{children}</AppChrome>
         {isProduction && <GoogleAnalytics />}
+        {isProduction && <MicrosoftClarity />}
       </body>
     </html>
   );
