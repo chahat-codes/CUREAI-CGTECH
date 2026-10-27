@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Activity, ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 
 type MvpShellProps = {
   eyebrow: string;
@@ -10,24 +11,29 @@ type MvpShellProps = {
 
 export default function MvpShell({ eyebrow, title, description, children }: MvpShellProps) {
   return (
-    <main className="min-h-screen bg-[#F8FAFC]">
-      <section className="bg-white border-b border-slate-100">
+    <div className="min-h-screen bg-[#f8faf9]">
+      <section className="border-b border-[#e6eeeb] bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#0A66FF] mb-8"
-          >
-            <Activity className="w-4 h-4" />
-            Cure AI MVP
+          <Link href="/" aria-label="Cure AI home" className="mb-8 inline-flex items-center gap-2">
+            <Image
+              src="/cure-ai-logo-mark.png"
+              alt="Cure AI"
+              width={96}
+              height={96}
+              className="size-11 object-contain"
+            />
+            <span className="font-outfit text-3xl font-extrabold leading-none tracking-tight text-[#173c32]">
+              cure <span className="text-[#0A66FF]">ai</span>
+            </span>
           </Link>
           <div className="max-w-3xl">
-            <p className="text-[#0A66FF] font-semibold uppercase tracking-wider text-xs mb-3">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[.14em] text-[#14734b]">
               {eyebrow}
             </p>
-            <h1 className="font-outfit text-4xl md:text-5xl font-extrabold text-slate-950 tracking-tight mb-4">
+            <h1 className="mb-4 font-outfit text-4xl font-extrabold tracking-tight text-[#172b35] md:text-5xl">
               {title}
             </h1>
-            <p className="text-lg text-slate-600 leading-relaxed">{description}</p>
+            <p className="text-lg leading-relaxed text-slate-600">{description}</p>
           </div>
         </div>
       </section>
@@ -35,13 +41,13 @@ export default function MvpShell({ eyebrow, title, description, children }: MvpS
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         {children}
       </section>
-    </main>
+    </div>
   );
 }
 
 export function MvpCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-white border border-slate-200 rounded-2xl shadow-sm p-5 md:p-6 ${className}`}>
+    <div className={`rounded-2xl border border-[#e4ece8] bg-white p-5 shadow-sm md:p-6 ${className}`}>
       {children}
     </div>
   );

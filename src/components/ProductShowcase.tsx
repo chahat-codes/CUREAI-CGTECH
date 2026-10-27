@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LayoutDashboard, Bot, Stethoscope, Calendar, FolderHeart, FileText, User, Bell, Search, Activity } from "lucide-react";
+import Image from "next/image";
+import { LayoutDashboard, Bot, Stethoscope, Calendar, FolderHeart, FileText, User, Bell, Search } from "lucide-react";
 
 export default function ProductShowcase() {
   const sidebarItems = [
@@ -43,11 +44,17 @@ export default function ProductShowcase() {
         >
           {/* Sidebar */}
           <div className="w-64 border-r border-slate-200/60 bg-white/90 p-6 hidden md:flex flex-col">
-            <div className="flex items-center space-x-3 mb-10 pl-2">
-              <div className="bg-[#0A66FF] p-2 rounded-xl shadow-md shadow-blue-500/20">
-                <Activity className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-outfit font-bold text-xl text-slate-900">Cure AI</span>
+            <div className="flex items-center gap-1.5 mb-10 pl-2">
+              <Image
+                src="/cure-ai-logo-mark.png"
+                alt="Cure AI"
+                width={112}
+                height={112}
+                className="h-14 w-14 rounded-xl object-contain"
+              />
+              <span className="font-outfit text-4xl font-black leading-none tracking-tight text-[#071A3D]">
+                cure <span className="text-[#0A66FF]">ai</span>
+              </span>
             </div>
 
             <nav className="space-y-2 flex-1">

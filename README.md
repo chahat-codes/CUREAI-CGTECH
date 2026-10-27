@@ -1,6 +1,6 @@
-# Cure AI Website
+# Cure AI Healthcare Platform
 
-Cure AI is a Next.js App Router website built with React, TypeScript, Tailwind CSS, Framer Motion, and Lucide icons.
+Cure AI is a Next.js App Router healthcare-discovery and care-coordination platform. It includes doctor discovery, adaptive pre-consultation intake, appointment and queue workflows, patient/staff dashboards, and Supabase-backed persistence with a local demo fallback.
 
 ## Project Type
 
@@ -23,6 +23,15 @@ Cure AI is a Next.js App Router website built with React, TypeScript, Tailwind C
   - `/admin/doctors/new`
   - `/admin/doctors/[id]/edit`
   - `/login`
+  - `/register`
+  - `/ai-health-assistant`
+  - `/privacy`
+  - `/terms`
+  - `/medical-disclaimer`
+  - `/data-deletion`
+  - `/contact`
+  - `/robots.txt`
+  - `/sitemap.xml`
 
 ## Setup
 
@@ -60,6 +69,7 @@ This app also supports the Next.js-style aliases:
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 In Supabase SQL Editor, run:
@@ -83,7 +93,42 @@ The app creates or updates the profile in the Supabase `users` table when Supaba
 
 The Supabase Auth OTP helper code is still kept in `src/lib/auth.ts` for a later production login flow. If you re-enable OTP later, configure the Supabase Magic Link email template with `supabase/email-otp-template.html` so it sends `{{ .Token }}` instead of a magic link.
 
-The app has a local demo fallback, so the MVP flow can be tested before Supabase is connected.
+The app has a local demo fallback, so the MVP flow can be tested before Supabase is connected. Local storage is for product demonstration only and must not be used for real patient information.
+
+## Safety and privacy checklist
+
+- The AI assistant presents specialist suggestions only, never a diagnosis.
+- Emergency phrases stop the normal intake and display urgent-care guidance.
+- Patients review summaries before sharing; production persistence must enforce explicit consent.
+- Do not put patient data, summaries, storage paths, or internal database IDs in URLs.
+- Medical files must use a private Supabase Storage bucket and short-lived signed URLs.
+- Every sensitive table must retain RLS in production; test each role with separate accounts.
+- Receptionists must not receive detailed medical-record or private clinical-note access.
+- Queue views for patients must expose only token and aggregate position information.
+- Service-role credentials are server-only and must never use a `NEXT_PUBLIC_` variable.
+- Confirm file-size/type checks, rate limits, audit logs, retention rules, and deletion handling before launch.
+
+## Role-permission summary
+
+| Role | Intended access |
+| --- | --- |
+| Patient | Own profile, appointments, intake sessions, consent and health records |
+| Doctor | Assigned consultations and information explicitly shared for them |
+| Receptionist | Appointment and queue operations with restricted medical data |
+| Clinic admin | Clinic staff, schedules, doctors, queues and clinic analytics |
+| Platform admin | Verification, platform settings, audit/support workflows |
+
+## Founder-input placeholders
+
+Before production launch, confirm the legal entity and jurisdiction, official support/privacy contacts, emergency contact configuration, data-retention schedule, doctor/clinic verification process, notification providers, rate-limit thresholds, permitted upload types/sizes, and whether any authorized ABHA integration exists. The product currently makes no ABHA integration claim.
+
+## Vercel deployment
+
+1. Import this repository and use the root directory.
+2. Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and the production `NEXT_PUBLIC_SITE_URL`.
+3. Run the Supabase schema and seed SQL before enabling real accounts.
+4. Deploy, then verify auth redirects, RLS for every role, private storage, legal pages, `robots.txt`, and `sitemap.xml`.
+5. Keep any service-role secret server-only; the current client application does not require it.
 
 ## MVP Flow
 
@@ -127,7 +172,7 @@ npm run lint
 Create a production build:
 
 ```bash
-npm run build
+npx next build --webpack
 ```
 
 Start the production build locally after building:
