@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "cureai-mvp-v2/**",
     "next-env.d.ts",
   ]),
 ]);

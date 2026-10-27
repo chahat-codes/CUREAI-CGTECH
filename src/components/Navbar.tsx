@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Menu, X, Activity, User, Stethoscope, Bot,
+  Menu, X, Activity, User, Stethoscope, Bot, ChevronDown, ClipboardList,
   FileText, Calendar, ArrowRight,
   LogOut, Sparkles, Send, Check, Shield
 } from "lucide-react";
@@ -12,22 +14,23 @@ import { getCurrentSession, getProfileForSession, logout, routeForRole } from "@
 import { getUser } from "@/lib/mvp-storage";
 import type { UserRole } from "@/lib/mvp-types";
 import { supabase } from "@/lib/supabase";
+import EmergencyAssistance from "@/components/EmergencyAssistance";
 
 // ─── Simple Links ──────────────────────────────────────────────────
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "Check Symptoms", href: "/symptoms" },
-  { label: "Features", href: "/features" },
-  { label: "For Patients", href: "/for-patients" },
-  { label: "For Clinics & Hospitals", href: "/for-clinics" },
+  { label: "AI Health Assistant", href: "/ai-health-assistant" },
+  { label: "Find Doctors", href: "/find-doctor" },
+  { label: "Video Consult", href: "/video-consult" },
   { label: "How It Works", href: "/#how-it-works" },
-  { label: "Contact / Support", href: "/#contact" }
+  { label: "For Clinics", href: "/for-clinics" },
 ];
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled]         = useState(false);
   const [isMobileMenuOpen, setIsMobileMenu] = useState(false);
   const [authRole, setAuthRole]             = useState<UserRole | null>(null);
@@ -164,38 +167,50 @@ export default function Navbar() {
     >
       {/* ── Main bar ────────────────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex justify-between items-center h-[68px]">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 shrink-0">
-            <div className="bg-[#0A66FF] p-2 rounded-xl shadow-md shadow-blue-500/20">
-              <Activity className="h-6 w-6 text-white" />
-            </div>
-            <span className="font-outfit font-bold text-2xl text-slate-900 tracking-tight">
-              Cure<span className="text-[#0A66FF]">AI</span>
+          <Link href="/" className="flex items-center gap-1.5 shrink-0">
+            <Image
+              src="/cure-ai-logo-mark.png"
+              alt="Cure AI"
+              width={160}
+              height={160}
+              priority
+              className="h-10 w-10 rounded-xl object-contain"
+            />
+            <span className="font-outfit text-[29px] font-black leading-none tracking-tight text-[#071A3D]">
+              cure <span className="text-[#0A66FF]">ai</span>
             </span>
           </Link>
 
           {/* Desktop Links */}
-          <nav className="hidden lg:flex items-center space-x-6">
+          <nav className="hidden lg:flex items-center space-x-5">
             {navLinks.map(link => (
-              <Link
+              link.label === "For Clinics" ? <details key={link.label} className="clinic-nav-menu">
+                <summary aria-label="For Clinics menu">For Clinics <ChevronDown size={13} /></summary>
+                <div className="clinic-nav-popover">
+                  <Link href="/doctor-dashboard" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")}><Stethoscope size={17} /><span><strong>For Doctors</strong><small>Manage your practice and patient care.</small></span></Link>
+                  <Link href="/clinics/receptionist" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")}><ClipboardList size={17} /><span><strong>For Receptionists</strong><small>Manage appointments and live patient queues.</small></span></Link>
+                  <Link className="clinic-nav-all" href="/for-clinics" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")}>Explore clinic solutions <ChevronDown size={13} /></Link>
+                </div>
+              </details> : <Link
                 key={link.label}
                 href={link.href}
-                className="text-sm font-medium text-slate-600 hover:text-[#0A66FF] transition-colors"
-              >
-                {link.label}
-              </Link>
+                aria-current={pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href)) ? "page" : undefined}
+                className={`rounded-md border-b-2 py-2 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 ${pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href)) ? "border-[#0A66FF] text-[#0A66FF]" : "border-transparent text-slate-600 hover:text-[#0A66FF]"}`}
+              >{link.label}</Link>
             ))}
           </nav>
 
           {/* Right CTAs */}
           <div className="hidden lg:flex items-center space-x-3">
+            <EmergencyAssistance compact />
             {authRole ? (
               <>
                 <Link
                   href={routeForRole(authRole)}
-                  className="text-slate-600 hover:text-[#0A66FF] font-medium text-sm transition-colors"
+                  className="rounded-full bg-[#0A66FF] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#0954cf]"
                 >
                   Dashboard
                 </Link>
@@ -211,24 +226,20 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="text-slate-600 hover:text-[#0A66FF] font-medium text-sm transition-colors"
+                className="rounded-full bg-[#0A66FF] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#0954cf]"
               >
-                Log in
+                Login / Sign Up
               </Link>
             )}
-            <Link
-              href="/symptoms"
-              className="bg-[#0A66FF] hover:bg-blue-700 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-all shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 transform flex items-center space-x-1.5"
-            >
-              <span>Get Started</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
           </div>
 
           {/* Mobile hamburger */}
           <button
+            type="button"
             onClick={() => setIsMobileMenu(!isMobileMenuOpen)}
-            className="lg:hidden p-2 text-slate-600 hover:text-[#0A66FF] focus:outline-none"
+            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isMobileMenuOpen}
+            className="rounded-lg p-2 text-slate-600 hover:text-[#0A66FF] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 lg:hidden"
           >
             {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -246,17 +257,17 @@ export default function Navbar() {
           >
             <div className="px-4 pt-2 pb-6 space-y-1">
               {navLinks.map(link => (
-                <Link
+                link.label === "For Clinics" ? <div className="mobile-clinic-nav" key={link.label}><p>For Clinics</p><Link href="/doctor-dashboard" onClick={() => setIsMobileMenu(false)}><Stethoscope size={17} /><span><strong>For Doctors</strong><small>Practice and patient care tools</small></span></Link><Link href="/clinics/receptionist" onClick={() => setIsMobileMenu(false)}><ClipboardList size={17} /><span><strong>For Receptionists</strong><small>Manage appointments and live patient queues</small></span></Link></div> : <Link
                   key={link.label}
                   href={link.href}
                   onClick={() => setIsMobileMenu(false)}
-                  className="block px-3 py-3 text-slate-700 font-semibold text-sm hover:text-[#0A66FF] rounded-xl hover:bg-slate-50 transition-colors"
-                >
-                  {link.label}
-                </Link>
+                  aria-current={pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href)) ? "page" : undefined}
+                  className="block rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#0A66FF] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+                >{link.label}</Link>
               ))}
 
               <div className="border-t border-slate-100 pt-4 mt-2 space-y-2.5">
+                <div className="flex items-center justify-between gap-3"><EmergencyAssistance /></div>
                 {authRole ? (
                   <>
                     <Link href={routeForRole(authRole)} onClick={() => setIsMobileMenu(false)} className="w-full text-center text-slate-600 font-semibold py-2.5 border border-slate-200 rounded-xl flex items-center justify-center space-x-2 hover:bg-slate-50 transition-colors">
@@ -269,15 +280,12 @@ export default function Navbar() {
                 ) : (
                   <>
                     <Link href="/login" onClick={() => setIsMobileMenu(false)} className="w-full text-center text-slate-600 font-semibold py-2.5 border border-slate-200 rounded-xl flex items-center justify-center space-x-2 hover:bg-slate-50 transition-colors">
-                      <User className="w-4 h-4 text-slate-400" /><span>Patient Login</span>
-                    </Link>
-                    <Link href="/login" onClick={() => setIsMobileMenu(false)} className="w-full text-center text-slate-600 font-semibold py-2.5 border border-slate-200 rounded-xl flex items-center justify-center space-x-2 hover:bg-slate-50 transition-colors">
-                      <Stethoscope className="w-4 h-4 text-[#0A66FF]" /><span>Doctor Admin Login</span>
+                      <User className="w-4 h-4 text-slate-400" /><span>Login / Sign Up</span>
                     </Link>
                   </>
                 )}
                 <Link href="/symptoms" onClick={() => setIsMobileMenu(false)} className="block w-full text-center bg-[#0A66FF] text-white font-bold py-3 rounded-xl">
-                  Get Started
+                  AI Health Assistant
                 </Link>
               </div>
             </div>
@@ -301,10 +309,16 @@ export default function Navbar() {
             >
               {/* Drawer header */}
               <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
-                <div className="flex items-center space-x-2.5">
-                  <div className="bg-[#0A66FF] p-2 rounded-xl"><Activity className="h-5 w-5 text-white" /></div>
+                <div className="flex items-center gap-1.5">
+                  <Image
+                    src="/cure-ai-logo-mark.png"
+                    alt="Cure AI"
+                    width={96}
+                    height={96}
+                    className="h-14 w-14 rounded-xl object-contain"
+                  />
                   <div>
-                    <h3 className="font-outfit font-extrabold text-xl text-slate-950">Cure AI Portal</h3>
+                    <h3 className="font-outfit text-3xl font-black leading-none tracking-tight text-[#071A3D]">cure <span className="text-[#0A66FF]">ai</span> Portal</h3>
                     <p className="text-xs text-slate-500 font-medium">Secure channel</p>
                   </div>
                 </div>

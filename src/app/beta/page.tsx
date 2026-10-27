@@ -9,7 +9,7 @@ export default function BetaHome() {
       <section className="relative z-10 mx-auto flex min-h-svh w-full max-w-6xl flex-col items-center justify-center px-5 py-16 text-center sm:px-8">
         <div className="mb-8 rounded-[2rem] border border-blue-100 bg-white/80 p-4 shadow-2xl shadow-blue-500/10 backdrop-blur">
           <Image
-            src="/cure-ai-logo.png"
+            src="/cure-ai-logo-mark.png"
             alt="Cure AI logo"
             width={220}
             height={220}

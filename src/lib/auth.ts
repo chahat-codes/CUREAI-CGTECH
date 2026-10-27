@@ -28,8 +28,19 @@ export async function getProfileForSession(session: Session | null): Promise<App
     .eq("id", session.user.id)
     .maybeSingle();
 
-  if (error) throw new Error(error.message);
-  if (!data) return null;
+  // Authenticated patients may not have had a legacy MVP users row yet.
+  // Build a patient-only app profile from verified Supabase identity metadata.
+  const metadata = session.user.user_metadata || {};
+  const fallback = {
+    id: session.user.id,
+    name: String(metadata.full_name || metadata.name || session.user.email?.split("@")[0] || "Cure AI patient"),
+    email: session.user.email || session.user.phone || "",
+    role: "patient" as UserRole,
+  };
+  if (error || !data) {
+    saveUser(fallback);
+    return fallback;
+  }
 
   const profile = {
     id: data.id,
@@ -192,6 +203,20 @@ export async function upsertUserProfile(input: {
 
   saveUser(profile);
   return profile;
+}
+
+export async function updateProfileName(user: AppUser, name: string) {
+  const cleanName = name.trim();
+  if (cleanName.length < 2) throw new Error("Enter a name with at least 2 characters.");
+
+  if (supabase) {
+    const { error } = await supabase.from("users").update({ name: cleanName }).eq("id", user.id);
+    if (error) throw new Error(error.message);
+  }
+
+  const updated = { ...user, name: cleanName };
+  saveUser(updated);
+  return updated;
 }
 
 export async function logout() {

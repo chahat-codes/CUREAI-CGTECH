@@ -7,8 +7,19 @@ import MicrosoftClarity from "@/components/MicrosoftClarity";
 const isProduction = process.env.NODE_ENV === "production";
 
 export const metadata: Metadata = {
-  title: "Cure AI | Find the Right Doctor in 30 Seconds",
-  description: "Cure AI uses intelligent symptom understanding to connect patients with the most relevant specialists, book appointments instantly, and keep all health records in one secure place.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://cureai.health"),
+  title: {
+    default: "Cure AI | Your AI Health Companion",
+    template: "%s | Cure AI",
+  },
+  description: "Find nearby specialists, prepare for a consultation with an AI-assisted health intake, manage records and track clinic queues.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Cure AI | Your AI Health Companion",
+    description: "Healthcare discovery, pre-consultation assistance, appointments and secure health records in one platform.",
+    type: "website",
+    siteName: "Cure AI",
+  },
 };
 
 export default function RootLayout({

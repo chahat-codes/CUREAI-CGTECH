@@ -1,9 +1,15 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import {
+  ArrowRight,
+  Bell,
+  CalendarDays,
   CalendarClock,
   CheckCircle2,
+  ChevronDown,
   FileText,
   Search,
   Sparkles,
@@ -11,7 +17,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
-import MvpShell, { MvpCard, PrimaryAction, StatusMessage } from "@/components/mvp/MvpShell";
+import { PrimaryAction, StatusMessage } from "@/components/mvp/MvpShell";
 import {
   getActiveDoctorId,
   getDoctorOverview,
@@ -43,6 +49,8 @@ export default function DoctorDashboardPage() {
   const [savingNote, setSavingNote] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [appointmentFilter, setAppointmentFilter] = useState("All appointments");
+  const [appointmentSearch, setAppointmentSearch] = useState("");
 
   const loadDashboard = async () => {
     setLoading(true);
@@ -129,85 +137,106 @@ export default function DoctorDashboardPage() {
     { label: "Follow-ups due", value: overview.followUpsDue, icon: Stethoscope },
   ];
 
+  const visibleAppointments = appointments.filter((appointment) => {
+    const status = (appointment.queue_token?.current_status || appointment.status || "").toLowerCase();
+    const matchesFilter = appointmentFilter === "All appointments"
+      || (appointmentFilter === "Waiting" && status.includes("wait"))
+      || (appointmentFilter === "Completed" && status.includes("complete"));
+    const query = appointmentSearch.trim().toLowerCase();
+    const matchesSearch = !query || `${appointment.patient?.name || ""} ${appointment.symptoms || ""} ${appointment.token_number || ""}`.toLowerCase().includes(query);
+    return matchesFilter && matchesSearch;
+  });
+
   return (
     <AuthGuard roles={["doctor"]}>
-      <MvpShell
-        eyebrow="Doctor dashboard"
-        title="Clinical workspace."
-        description="Review today’s appointments, search medical IDs, inspect patient records, and write follow-up notes."
-      >
+      <div className="min-h-screen bg-[#f6fafb] text-[#102a43]">
+        <header className="border-b border-[#e7eff2] bg-white">
+          <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-6 px-5 py-4 lg:px-10">
+            <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="Cure AI home">
+              <Image src="/cure-ai-logo-mark.png" alt="" width={40} height={40} className="size-10 object-contain" />
+              <span className="font-outfit text-2xl font-extrabold tracking-tight text-[#12365a]">cure <span className="text-[#0A66FF]">ai</span></span>
+            </Link>
+            <nav className="hidden items-center gap-8 text-sm font-semibold text-[#526b80] md:flex">
+              <Link href="/doctor-dashboard" className="border-b-2 border-[#1768ee] py-2 text-[#0A66FF]">Dashboard</Link>
+              <a href="#appointments" className="py-2 transition hover:text-[#0A66FF]">Appointments</a>
+              <a href="#patient-search" className="py-2 transition hover:text-[#0A66FF]">Patient records</a>
+            </nav>
+            <div className="flex items-center gap-3">
+              <button type="button" aria-label="Notifications" className="rounded-full p-2.5 text-[#49647b] hover:bg-[#f2f8f9]"><Bell className="size-5" /></button>
+              <div className="hidden text-right sm:block"><div className="text-sm font-bold">Doctor workspace</div><div className="text-xs text-[#7690a2]">Secure clinical access</div></div>
+              <div className="grid size-10 place-items-center rounded-full bg-[#eaf2ff] text-sm font-extrabold text-[#0A66FF]">CA</div>
+            </div>
+          </div>
+        </header>
+        <section className="relative overflow-hidden border-b border-[#e3edfb] bg-[linear-gradient(110deg,#f2f7ff_0%,#f7fbff_60%,#eff5ff_100%)]">
+          <div className="pointer-events-none absolute -left-20 top-0 size-64 rounded-full bg-[#dce9ff]/60 blur-2xl" />
+          <div className="relative mx-auto max-w-[1440px] px-5 py-8 lg:px-10 lg:py-10">
+            <div className="max-w-3xl">
+              <span className="inline-flex items-center gap-2 rounded-full bg-[#eaf2ff] px-3 py-1 text-xs font-bold text-[#0A66FF]"><Stethoscope className="size-3.5" /> DOCTOR WORKSPACE</span>
+              <h1 className="mt-3 font-outfit text-3xl font-extrabold tracking-tight text-[#12345a] md:text-4xl">Your practice, at a glance.</h1>
+              <p className="mt-2 text-sm leading-6 text-[#668096] md:text-base">Manage today’s appointments and securely look up patient records.</p>
+            </div>
+            <form id="patient-search" onSubmit={handleSearch} className="mt-6 flex max-w-5xl flex-col gap-2 rounded-2xl border border-[#e2edf0] bg-white p-2 shadow-[0_12px_35px_rgba(34,81,104,.08)] sm:flex-row">
+              <div className="relative min-w-0 flex-1"><Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#7790a4]" /><input value={medicalId} onChange={(event) => setMedicalId(event.target.value)} placeholder="Search patient by Medical ID" className="w-full rounded-xl bg-white py-3 pl-11 pr-4 text-sm outline-none placeholder:text-[#8ca0af]" /></div>
+              <PrimaryAction type="submit" disabled={searching}>{searching ? "Searching…" : "Find patient"}</PrimaryAction>
+            </form>
+          </div>
+        </section>
+
+        <main className="mx-auto max-w-[1440px] px-5 py-7 lg:px-10 lg:py-9">
       {loading && <StatusMessage type="loading">Loading doctor dashboard...</StatusMessage>}
       {error && <StatusMessage type="error">{error}</StatusMessage>}
       {success && <StatusMessage type="success">{success}</StatusMessage>}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
-          <MvpCard key={card.label}>
-            <div className="flex items-center justify-between gap-4">
+          <div key={card.label} className="flex items-center justify-between rounded-2xl border border-[#e4edf0] bg-white p-5 shadow-[0_4px_18px_rgba(34,81,104,.035)]">
               <div>
-                <p className="text-sm font-semibold text-slate-500">{card.label}</p>
-                <p className="font-outfit text-4xl font-black text-slate-950">{card.value}</p>
+                <p className="text-sm font-semibold text-[#71879a]">{card.label}</p>
+                <p className="font-outfit text-3xl font-extrabold text-[#12345a]">{card.value}</p>
               </div>
-              <div className="rounded-2xl bg-blue-50 p-3 text-[#0A66FF]">
-                <card.icon className="w-6 h-6" />
+              <div className="rounded-2xl bg-[#e8f0ff] p-3 text-[#1768ee]">
+                <card.icon className="size-6" />
               </div>
-            </div>
-          </MvpCard>
+          </div>
         ))}
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <MvpCard>
-          <h2 className="font-outfit text-2xl font-extrabold text-slate-950 mb-4">
-            Today’s appointments
-          </h2>
+      <div className="mt-7 grid items-start gap-5 xl:grid-cols-[250px_minmax(0,1fr)]">
+        <aside className="rounded-2xl border border-[#e4edf0] bg-white p-5 shadow-[0_4px_18px_rgba(34,81,104,.035)]">
+          <div className="flex items-center justify-between"><h2 className="font-outfit text-lg font-bold">Appointments</h2><CalendarDays className="size-5 text-[#1768ee]" /></div>
+          <p className="mt-1 text-xs text-[#8195a5]">Filter today’s schedule</p>
+          <div className="mt-5 space-y-2">{["All appointments", "Waiting", "Completed"].map((filter) => {
+            const selected = appointmentFilter === filter;
+            const count = filter === "All appointments" ? appointments.length : filter === "Waiting" ? overview.waitingPatients : overview.completedPatients;
+            return <button key={filter} type="button" onClick={() => setAppointmentFilter(filter)} className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${selected ? "bg-[#eaf2ff] text-[#0A66FF]" : "text-[#61798c] hover:bg-[#f6fafb]"}`}><span>{filter}</span><span className="text-xs">{count}</span></button>;
+          })}</div>
+          <div className="my-5 border-t border-[#edf2f4]" />
+          <div className="flex items-center justify-between text-xs font-semibold text-[#7a8fa0]"><span>Today’s date</span><span className="text-[#12345a]">{new Intl.DateTimeFormat("en", { day: "numeric", month: "short" }).format(new Date())}</span></div>
+        </aside>
+
+        <section id="appointments" className="min-w-0">
+          <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+            <div><p className="text-sm text-[#71879a]">{visibleAppointments.length} appointments</p><h2 className="mt-1 font-outfit text-2xl font-extrabold text-[#12345a]">Today’s schedule</h2></div>
+            <label className="relative block w-full sm:max-w-xs"><Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[#869cad]" /><input value={appointmentSearch} onChange={(event) => setAppointmentSearch(event.target.value)} placeholder="Search patient or concern" className="w-full rounded-xl border border-[#e3ecef] bg-white py-2.5 pl-10 pr-10 text-sm outline-none focus:border-[#94b8ff]" /><ChevronDown className="absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-[#9aabb6]" /></label>
+          </div>
           <div className="space-y-3">
-            {appointments.length === 0 && (
-              <StatusMessage type="empty">No appointments for today.</StatusMessage>
-            )}
-            {appointments.map((appointment) => (
+            {visibleAppointments.length === 0 && <StatusMessage type="empty">{appointments.length === 0 ? "No appointments for today." : "No appointments match these filters."}</StatusMessage>}
+            {visibleAppointments.map((appointment) => (
               <div
                 key={appointment.id}
-                className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
+                className="grid gap-4 rounded-2xl border border-[#e3ebf7] bg-white p-4 shadow-[0_4px_18px_rgba(34,81,104,.035)] transition hover:border-[#b9d1ff] sm:grid-cols-[minmax(220px,1.1fr)_minmax(150px,.8fr)_minmax(150px,.8fr)_auto] sm:items-center sm:p-5"
               >
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="font-bold text-slate-950">
-                      {appointment.patient?.name || "Patient"}
-                    </p>
-                    <p className="text-sm text-slate-600">
-                      {appointment.appointment_time} · Token #{appointment.token_number}
-                    </p>
-                  </div>
-                  <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-bold capitalize text-slate-600">
-                    {appointment.queue_token?.current_status || appointment.status}
-                  </span>
-                </div>
-                <p className="mt-3 text-sm text-slate-600">{appointment.symptoms}</p>
+                <div className="flex min-w-0 items-center gap-3"><div className="grid size-14 shrink-0 place-items-center rounded-xl bg-[#e8f0ff] text-lg font-extrabold text-[#0A66FF]">{(appointment.patient?.name || "Patient").split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase()}</div><div className="min-w-0"><p className="truncate font-outfit text-lg font-bold text-[#12345a]">{appointment.patient?.name || "Patient"}</p><p className="mt-0.5 truncate text-sm text-[#70879a]">{appointment.symptoms || "Consultation"}</p><p className="mt-1 text-xs font-medium text-[#8a9ba8]">Token #{appointment.token_number}</p></div></div>
+                <div><p className="text-xs text-[#8396a5]">Appointment time</p><p className="mt-1 font-semibold text-[#234560]">{appointment.appointment_time || "Time not set"}</p></div>
+                <div><p className="text-xs text-[#8396a5]">Queue status</p><span className="mt-1 inline-flex rounded-full bg-[#e8f0ff] px-2.5 py-1 text-xs font-bold capitalize text-[#1768ee]">{appointment.queue_token?.current_status || appointment.status || "Scheduled"}</span></div>
+                <button type="button" onClick={() => { document.getElementById("patient-search")?.scrollIntoView({ behavior: "smooth", block: "center" }); window.setTimeout(() => document.querySelector<HTMLInputElement>("#patient-search input")?.focus({ preventScroll: true }), 250); }} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#d2e1fa] px-4 py-2.5 text-sm font-bold text-[#0A66FF] transition hover:bg-[#f2f7ff]">Patient record <ArrowRight className="size-4" /></button>
               </div>
             ))}
           </div>
-        </MvpCard>
+        </section>
 
-        <MvpCard>
-          <h2 className="font-outfit text-2xl font-extrabold text-slate-950 mb-4">
-            Patient Medical ID search
-          </h2>
-          <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:flex-row">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 w-4 h-4 -translate-y-1/2 text-slate-400" />
-              <input
-                value={medicalId}
-                onChange={(event) => setMedicalId(event.target.value)}
-                placeholder="Example: CURE-DEMO-001"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 outline-none focus:border-[#0A66FF] focus:bg-white focus:ring-4 focus:ring-blue-100"
-              />
-            </div>
-            <PrimaryAction type="submit" disabled={searching}>
-              {searching ? "Searching..." : "Search"}
-            </PrimaryAction>
-          </form>
-
+        <div className="xl:col-span-2">
           {patientBundle && (
             <div className="mt-6 space-y-5">
               <div className="rounded-2xl bg-blue-50 p-5">
@@ -318,9 +347,10 @@ export default function DoctorDashboardPage() {
               </form>
             </div>
           )}
-        </MvpCard>
+        </div>
       </div>
-      </MvpShell>
+      </main>
+      </div>
     </AuthGuard>
   );
 }
