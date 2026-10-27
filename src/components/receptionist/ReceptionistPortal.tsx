@@ -30,6 +30,13 @@ export default function ReceptionistPortal({ children }: { children: React.React
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setState(loadDemoState());
     setReady(true);
+    const syncState = (event: StorageEvent) => {
+      if (event.key === "cureai-receptionist-demo-v1" && event.newValue) {
+        try { setState(JSON.parse(event.newValue) as ReceptionistDemoState); } catch { /* Ignore invalid external storage data. */ }
+      }
+    };
+    window.addEventListener("storage", syncState);
+    return () => window.removeEventListener("storage", syncState);
   }, []);
   const update = (next: ReceptionistDemoState) => { setState(next); saveDemoState(next); };
   const contextValue = useMemo(() => ({ state, update, ready, notice, setNotice }), [state, ready, notice]);

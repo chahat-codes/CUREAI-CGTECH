@@ -6,8 +6,8 @@ import { getUser, saveUser } from "./mvp-storage";
 import { supabase } from "./supabase";
 
 export function routeForRole(role: UserRole) {
-  if (role === "doctor") return "/doctor-dashboard";
-  if (role === "receptionist") return "/receptionist-dashboard";
+  if (role === "doctor") return "/clinics/doctor";
+  if (role === "receptionist") return "/clinics/receptionist";
   if (role === "admin") return "/admin";
   return "/patient-dashboard";
 }

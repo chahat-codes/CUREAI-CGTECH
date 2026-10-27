@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -34,6 +34,8 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled]         = useState(false);
   const [isMobileMenuOpen, setIsMobileMenu] = useState(false);
   const [authRole, setAuthRole]             = useState<UserRole | null>(null);
+  const [isClinicMenuOpen, setClinicMenuOpen] = useState(false);
+  const clinicMenuRef = useRef<HTMLDivElement>(null);
 
   // Portal drawer state
   const [isDrawerOpen, setIsDrawerOpen]         = useState(false);
@@ -65,6 +67,22 @@ export default function Navbar() {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isClinicMenuOpen) return;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (event.target instanceof Node && !clinicMenuRef.current?.contains(event.target)) setClinicMenuOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setClinicMenuOpen(false);
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isClinicMenuOpen]);
 
   useEffect(() => {
     const loadAuthState = async () => {
@@ -187,14 +205,13 @@ export default function Navbar() {
           {/* Desktop Links */}
           <nav className="hidden lg:flex items-center space-x-5">
             {navLinks.map(link => (
-              link.label === "For Clinics" ? <details key={link.label} className="clinic-nav-menu">
-                <summary aria-label="For Clinics menu">For Clinics <ChevronDown size={13} /></summary>
-                <div className="clinic-nav-popover">
-                  <Link href="/doctor-dashboard" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")}><Stethoscope size={17} /><span><strong>For Doctors</strong><small>Manage your practice and patient care.</small></span></Link>
-                  <Link href="/clinics/receptionist" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")}><ClipboardList size={17} /><span><strong>For Receptionists</strong><small>Manage appointments and live patient queues.</small></span></Link>
-                  <Link className="clinic-nav-all" href="/for-clinics" onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")}>Explore clinic solutions <ChevronDown size={13} /></Link>
-                </div>
-              </details> : <Link
+              link.label === "For Clinics" ? <div key={link.label} className={`clinic-nav-menu ${isClinicMenuOpen ? "is-open" : ""}`} ref={clinicMenuRef}>
+                <button type="button" className="clinic-nav-trigger" aria-label="For Clinics menu" aria-expanded={isClinicMenuOpen} aria-controls="clinic-portal-menu" onClick={() => setClinicMenuOpen((open) => !open)}>For Clinics <ChevronDown size={13} /></button>
+                {isClinicMenuOpen && <div className="clinic-nav-popover" id="clinic-portal-menu">
+                  <Link href="/clinics/doctor" onClick={() => setClinicMenuOpen(false)}><Stethoscope size={17} /><span><strong>For Doctors</strong><small>Manage your practice and patient care.</small></span></Link>
+                  <Link href="/clinics/receptionist" onClick={() => setClinicMenuOpen(false)}><ClipboardList size={17} /><span><strong>For Receptionists</strong><small>Manage appointments and live patient queues.</small></span></Link>
+                </div>}
+              </div> : <Link
                 key={link.label}
                 href={link.href}
                 aria-current={pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href)) ? "page" : undefined}
@@ -257,7 +274,7 @@ export default function Navbar() {
           >
             <div className="px-4 pt-2 pb-6 space-y-1">
               {navLinks.map(link => (
-                link.label === "For Clinics" ? <div className="mobile-clinic-nav" key={link.label}><p>For Clinics</p><Link href="/doctor-dashboard" onClick={() => setIsMobileMenu(false)}><Stethoscope size={17} /><span><strong>For Doctors</strong><small>Practice and patient care tools</small></span></Link><Link href="/clinics/receptionist" onClick={() => setIsMobileMenu(false)}><ClipboardList size={17} /><span><strong>For Receptionists</strong><small>Manage appointments and live patient queues</small></span></Link></div> : <Link
+                link.label === "For Clinics" ? <div className="mobile-clinic-nav" key={link.label}><p>For Clinics</p><Link href="/clinics/doctor" onClick={() => setIsMobileMenu(false)}><Stethoscope size={17} /><span><strong>For Doctors</strong><small>Practice and patient care tools</small></span></Link><Link href="/clinics/receptionist" onClick={() => setIsMobileMenu(false)}><ClipboardList size={17} /><span><strong>For Receptionists</strong><small>Manage appointments and live patient queues</small></span></Link></div> : <Link
                   key={link.label}
                   href={link.href}
                   onClick={() => setIsMobileMenu(false)}

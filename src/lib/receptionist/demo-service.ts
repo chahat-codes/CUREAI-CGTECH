@@ -15,13 +15,15 @@ export type DemoAppointment = {
   consultationStartedAt: string | null;
   consultationCompletedAt: string | null;
   expectedMinutes: number;
+  type?: "Online" | "Offline";
+  consultationDraft?: { notes: string; diagnosis: string; treatmentPlan: string };
 };
 export type CapacitySetting = { maxBookings: number; manuallyClosed: boolean };
 export type ReceptionistDemoState = { appointments: DemoAppointment[]; capacities: Record<string, CapacitySetting> };
 
 const STORAGE_KEY = "cureai-receptionist-demo-v1";
 export const DEFAULT_BOOKING_CAPACITY = 24;
-const doctors = ["Dr. Meera Patel", "Dr. S. Reddy", "Dr. Anita Rao"];
+const doctors = ["Dr. Rahul Sharma", "Dr. S. Reddy", "Dr. Anita Rao"];
 const times = ["09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00"];
 
 export function localDateKey(date = new Date()) {
@@ -35,6 +37,7 @@ function seedState(): ReceptionistDemoState {
     id: `CA-${today.replaceAll("-", "").slice(2)}-${String(481 + index).padStart(4, "0")}`,
     patient: `Patient ${String.fromCharCode(65 + index)}•••`,
     doctor: doctors[index % doctors.length], date: today, time, status: statuses[index],
+    type: index % 3 === 1 ? "Online" : "Offline",
     checkedInAt: index > 0 && index < 3 ? `${String(9 + Math.floor(index / 2)).padStart(2, "0")}:${index % 2 ? "47" : "38"}` : null,
     queuePosition: index === 0 ? null : index < 4 ? index : null,
     emergency: false, emergencyAcknowledged: false, priority: false,
